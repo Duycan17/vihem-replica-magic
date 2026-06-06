@@ -14,6 +14,10 @@ import NewsDetail from "./pages/NewsDetail.tsx";
 import LienHe from "./pages/LienHe.tsx";
 import CategoryDetail from "./pages/CategoryDetail.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
+import Login from "./pages/admin/Login.tsx";
+import AdminLayout from "./pages/admin/AdminLayout.tsx";
+import PostList from "./pages/admin/PostList.tsx";
+import PostEditor from "./pages/admin/PostEditor.tsx";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +38,13 @@ const App = () => (
           <Route path="/lien-he" element={<LienHe />} />
           <Route path="/danh-muc/:slug" element={<CategoryDetail />} />
           <Route path="/san-pham/:slug" element={<ProductDetail />} />
+          {/* Admin routes */}
+          <Route path="/admin/login" element={<Login />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<PostList />} />
+            <Route path="posts/new" element={<PostEditor />} />
+            <Route path="posts/:id" element={<PostEditor />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
