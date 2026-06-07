@@ -1,26 +1,32 @@
-import { useState, useCallback } from "react";
-
-const SESSION_KEY = "cms_auth";
-const CREDENTIALS = { username: "admin", password: "vihem2024" };
+import { useState, useCallback, useEffect } from "react";
 
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => sessionStorage.getItem(SESSION_KEY) === "true"
-  );
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((username: string, password: string): boolean => {
-    if (username === CREDENTIALS.username && password === CREDENTIALS.password) {
-      sessionStorage.setItem(SESSION_KEY, "true");
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
+  useEffect(() => {
+    fetch("/api/cms/me", { credentials: "include" })
+      .then((res) => setIsAuthenticated(res.ok))
+      .catch(() => setIsAuthenticated(false))
+      .finally(() => setLoading(false));
   }, []);
 
-  const logout = useCallback(() => {
-    sessionStorage.removeItem(SESSION_KEY);
+  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
+    const res = await fetch("/api/cms/login", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const ok = res.ok;
+    setIsAuthenticated(ok);
+    return ok;
+  }, []);
+
+  const logout = useCallback(async () => {
+    await fetch("/api/cms/logout", { method: "POST", credentials: "include" });
     setIsAuthenticated(false);
   }, []);
 
-  return { isAuthenticated, login, logout };
+  return { isAuthenticated, loading, login, logout };
 };

@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/vihem/Layout";
 import PageHero from "@/components/vihem/PageHero";
 import { Link } from "react-router-dom";
-import { getPublishedPosts } from "@/lib/supabase-posts";
+import { getPublishedPosts } from "@/lib/posts";
+import PostImage from "@/components/vihem/PostImage";
 import { Calendar } from "lucide-react";
 
 const TinTuc = () => {
@@ -25,7 +26,11 @@ const TinTuc = () => {
               <article key={n.slug} className="bg-card rounded-lg overflow-hidden border border-border hover:shadow-xl transition-all">
                 <Link to={`/tin-tuc/${n.slug}`} className="block aspect-video bg-secondary overflow-hidden">
                   {n.img && (
-                    <img src={n.img} alt={n.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                    <PostImage
+                      src={n.img}
+                      alt={n.title}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform"
+                    />
                   )}
                 </Link>
                 <div className="p-5">

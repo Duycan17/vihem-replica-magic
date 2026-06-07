@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPostById, createPost, updatePost } from "@/lib/supabase-posts";
+import { getPostById, createPost, updatePost } from "@/lib/posts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import RichEditor from "@/components/admin/RichEditor";
+import ImageUploadField from "@/components/admin/ImageUploadField";
 
 const schema = z.object({
   title: z.string().min(1, "Tiêu đề không được để trống"),
@@ -117,10 +118,13 @@ const PostEditor = () => {
             <Label htmlFor="date">Ngày đăng</Label>
             <Input id="date" placeholder="dd/mm/yyyy" {...register("date")} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="img">URL ảnh đại diện</Label>
-            <Input id="img" placeholder="https://..." {...register("img")} />
-          </div>
+          <ImageUploadField
+            id="img"
+            label="Ảnh đại diện"
+            value={watch("img") ?? ""}
+            onChange={(url) => setValue("img", url, { shouldDirty: true })}
+            folder="featured"
+          />
         </div>
 
         <div className="space-y-1">

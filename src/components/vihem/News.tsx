@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { getPublishedPosts } from "@/lib/supabase-posts";
+import { getPublishedPosts } from "@/lib/posts";
+import PostImage from "@/components/vihem/PostImage";
 
 const News = () => {
   const { data: posts = [] } = useQuery({
@@ -23,7 +24,11 @@ const News = () => {
             <article key={n.slug} className="bg-card rounded-lg overflow-hidden shadow hover:shadow-xl transition-all border border-border">
               <div className="aspect-video overflow-hidden bg-background">
                 {n.img && (
-                  <img src={n.img} alt={n.title} loading="lazy" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+                  <PostImage
+                    src={n.img}
+                    alt={n.title}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                  />
                 )}
               </div>
               <div className="p-4">

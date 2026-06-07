@@ -1,0 +1,1 @@
+-- Posts table already exists (Life Pulse schema). No changes needed.

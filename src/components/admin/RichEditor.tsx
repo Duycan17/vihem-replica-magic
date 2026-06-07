@@ -1,6 +1,9 @@
+import { useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import { uploadPostImage } from "@/lib/images";
+import { toast } from "sonner";
 import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableCell from "@tiptap/extension-table-cell";
@@ -60,6 +63,8 @@ type Props = {
 };
 
 const RichEditor = ({ value, onChange }: Props) => {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
   const editor = useEditor({
     extensions,
     content: value,
@@ -68,9 +73,22 @@ const RichEditor = ({ value, onChange }: Props) => {
 
   if (!editor) return null;
 
-  const addImage = () => {
-    const url = window.prompt("URL ảnh");
-    if (url) editor.chain().focus().setImage({ src: url }).run();
+  const addImage = () => imageInputRef.current?.click();
+
+  const handleImageUpload = async (file: File | undefined) => {
+    if (!file || !file.type.startsWith("image/")) {
+      toast.error("Vui lòng chọn file ảnh.");
+      return;
+    }
+
+    try {
+      const url = await uploadPostImage(file, "content");
+      editor.chain().focus().setImage({ src: url }).run();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Tải ảnh thất bại.");
+    } finally {
+      if (imageInputRef.current) imageInputRef.current.value = "";
+    }
   };
 
   const addLink = () => {
@@ -84,6 +102,13 @@ const RichEditor = ({ value, onChange }: Props) => {
 
   return (
     <div className="border border-border rounded-md overflow-hidden">
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => void handleImageUpload(e.target.files?.[0])}
+      />
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-0.5 p-2 border-b border-border bg-card">
         <ToolbarButton title="Undo" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}>
@@ -148,7 +173,7 @@ const RichEditor = ({ value, onChange }: Props) => {
       {/* Editor area */}
       <EditorContent
         editor={editor}
-        className="prose prose-neutral max-w-none p-4 min-h-[300px] focus-within:outline-none text-foreground [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:p-2 [&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:p-2 [&_.ProseMirror_th]:bg-secondary [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none"
+        className="prose prose-neutral max-w-none p-4 min-h-[300px] focus-within:outline-none text-foreground [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[280px] [&_.ProseMirror_img]:max-w-full [&_.ProseMirror_img]:rounded-lg [&_.ProseMirror_table]:border-collapse [&_.ProseMirror_td]:border [&_.ProseMirror_td]:border-border [&_.ProseMirror_td]:p-2 [&_.ProseMirror_th]:border [&_.ProseMirror_th]:border-border [&_.ProseMirror_th]:p-2 [&_.ProseMirror_th]:bg-secondary [&_.ProseMirror_p.is-editor-empty:first-child::before]:text-muted-foreground [&_.ProseMirror_p.is-editor-empty:first-child::before]:content-[attr(data-placeholder)] [&_.ProseMirror_p.is-editor-empty:first-child::before]:float-left [&_.ProseMirror_p.is-editor-empty:first-child::before]:pointer-events-none"
       />
     </div>
   );

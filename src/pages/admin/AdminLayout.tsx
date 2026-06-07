@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { LayoutDashboard, FilePlus, ExternalLink, LogOut } from "lucide-react";
 
 const AdminLayout = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, loading, logout } = useAuth();
   const navigate = useNavigate();
 
+  if (loading) return null;
   if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
 
   const handleLogout = () => {
-    logout();
+    void logout();
     navigate("/admin/login");
   };
 

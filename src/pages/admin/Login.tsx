@@ -9,17 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = login(username, password);
+    setSubmitting(true);
+    setError("");
+    const ok = await login(email, password);
+    setSubmitting(false);
     if (ok) {
       navigate("/admin");
     } else {
-      setError("Sai tên đăng nhập hoặc mật khẩu.");
+      setError("Sai email hoặc mật khẩu.");
     }
   };
 
@@ -32,11 +36,12 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
-              <Label htmlFor="username">Tên đăng nhập</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
                 required
               />
@@ -53,7 +58,9 @@ const Login = () => {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">Đăng nhập</Button>
+            <Button type="submit" className="w-full" disabled={submitting}>
+              {submitting ? "Đang đăng nhập..." : "Đăng nhập"}
+            </Button>
           </form>
         </CardContent>
       </Card>
