@@ -1,5 +1,5 @@
 import type { Plugin } from "vite";
-import { handleApiRequest } from "./router";
+import { handleApiRequest } from "./router.js";
 
 export const apiPlugin = (): Plugin => ({
   name: "api-server",

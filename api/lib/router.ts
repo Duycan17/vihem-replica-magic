@@ -8,9 +8,9 @@ import {
   listPublishedPosts,
   savePostImageMetadata,
   updatePost,
-} from "./posts-db";
-import { createPresignedUpload } from "./r2";
-import { getApiPathname } from "./path";
+} from "./posts-db.js";
+import { createPresignedUpload } from "./r2.js";
+import { getApiPathname } from "./path.js";
 
 type ApiRequest = IncomingMessage & {
   url?: string;

@@ -1,5 +1,5 @@
-import type { Post, PostInsert, PostUpdate } from "./posts";
-import { getSql } from "./db";
+import type { Post, PostInsert, PostUpdate } from "./posts.js";
+import { getSql } from "./db.js";
 
 export type { PostInsert, PostUpdate };
 
