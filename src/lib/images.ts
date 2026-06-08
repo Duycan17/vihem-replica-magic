@@ -51,7 +51,6 @@ type PresignResponse = {
 export const uploadPostImage = async (file: File, folder = "posts"): Promise<string> => {
   const presignRes = await fetch("/api/presign-upload", {
     method: "POST",
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       fileName: `${crypto.randomUUID()}.${fileExtension(file)}`,

@@ -3,7 +3,7 @@ import type { Post, PostInsert, PostUpdate } from "@/types/posts";
 export type { Post, PostInsert, PostUpdate };
 
 const apiFetch = async (path: string, init?: RequestInit) => {
-  const res = await fetch(path, { ...init, credentials: "include" });
+  const res = await fetch(path, init);
   if (res.status === 204) return null;
 
   const text = await res.text();

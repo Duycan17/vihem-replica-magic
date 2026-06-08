@@ -1,12 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "http";
 import {
-  clearSessionCookieHeader,
-  createSessionToken,
-  getSessionFromCookieHeader,
-  sessionCookieHeader,
-  verifyCredentials,
-} from "./auth";
-import {
   createPost,
   deletePost,
   getPostById,
@@ -66,16 +59,6 @@ const sendJson = (res: ApiResponse, status: number, data: unknown, headers?: Rec
   res.end(JSON.stringify(data));
 };
 
-const isSecureRequest = (req: ApiRequest) =>
-  req.headers["x-forwarded-proto"] === "https" || process.env.NODE_ENV === "production";
-
-const requireSession = (req: ApiRequest) => {
-  const cookieHeader = req.headers.cookie;
-  const session = getSessionFromCookieHeader(typeof cookieHeader === "string" ? cookieHeader : undefined);
-  if (!session) return null;
-  return session;
-};
-
 const matchPath = (pathname: string, pattern: string) => {
   const patternParts = pattern.split("/").filter(Boolean);
   const pathParts = pathname.split("/").filter(Boolean);
@@ -96,32 +79,6 @@ export const handleApiRequest = async (req: ApiRequest, res: ApiResponse) => {
   const method = req.method ?? "GET";
 
   try {
-    if (method === "POST" && pathname === "/api/cms/login") {
-      const body = (await readJsonBody(req)) as { email?: string; password?: string };
-      if (!body.email || !body.password || !verifyCredentials(body.email, body.password)) {
-        return sendJson(res, 401, { success: false, error: "Invalid credentials" });
-      }
-      const token = createSessionToken(body.email);
-      return sendJson(
-        res,
-        200,
-        { success: true, email: body.email },
-        { "Set-Cookie": sessionCookieHeader(token, isSecureRequest(req)) },
-      );
-    }
-
-    if (method === "POST" && pathname === "/api/cms/logout") {
-      return sendJson(res, 200, { success: true }, {
-        "Set-Cookie": clearSessionCookieHeader(isSecureRequest(req)),
-      });
-    }
-
-    if (method === "GET" && pathname === "/api/cms/me") {
-      const session = requireSession(req);
-      if (!session) return sendJson(res, 401, { success: false });
-      return sendJson(res, 200, { success: true, email: session.email });
-    }
-
     if (method === "GET" && pathname === "/api/posts") {
       const posts = await listPublishedPosts();
       return sendJson(res, 200, posts);
@@ -135,13 +92,11 @@ export const handleApiRequest = async (req: ApiRequest, res: ApiResponse) => {
     }
 
     if (method === "GET" && pathname === "/api/cms/posts") {
-      if (!requireSession(req)) return sendJson(res, 401, { error: "Unauthorized" });
       const posts = await listAllPosts();
       return sendJson(res, 200, posts);
     }
 
     if (method === "POST" && pathname === "/api/cms/posts") {
-      if (!requireSession(req)) return sendJson(res, 401, { error: "Unauthorized" });
       const body = (await readJsonBody(req)) as Parameters<typeof createPost>[0];
       const post = await createPost(body);
       return sendJson(res, 201, post);
@@ -149,7 +104,6 @@ export const handleApiRequest = async (req: ApiRequest, res: ApiResponse) => {
 
     const cmsPostMatch = matchPath(pathname, "/api/cms/posts/:id");
     if (cmsPostMatch) {
-      if (!requireSession(req)) return sendJson(res, 401, { error: "Unauthorized" });
       const { id } = cmsPostMatch;
 
       if (method === "GET") {
@@ -173,7 +127,6 @@ export const handleApiRequest = async (req: ApiRequest, res: ApiResponse) => {
     }
 
     if (method === "POST" && pathname === "/api/cms/images") {
-      if (!requireSession(req)) return sendJson(res, 401, { error: "Unauthorized" });
       const body = (await readJsonBody(req)) as {
         objectKey?: string;
         fileUrl?: string;
@@ -193,7 +146,6 @@ export const handleApiRequest = async (req: ApiRequest, res: ApiResponse) => {
     }
 
     if (method === "POST" && pathname === "/api/presign-upload") {
-      if (!requireSession(req)) return sendJson(res, 401, { success: false, error: "Unauthorized" });
       const body = (await readJsonBody(req)) as {
         fileName?: string;
         contentType?: string;

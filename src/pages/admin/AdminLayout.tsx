@@ -1,20 +1,7 @@
-import { Navigate, Outlet, Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FilePlus, ExternalLink, LogOut } from "lucide-react";
+import { Outlet, Link } from "react-router-dom";
+import { LayoutDashboard, FilePlus, ExternalLink } from "lucide-react";
 
 const AdminLayout = () => {
-  const { isAuthenticated, loading, logout } = useAuth();
-  const navigate = useNavigate();
-
-  if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
-
-  const handleLogout = () => {
-    void logout();
-    navigate("/admin/login");
-  };
-
   return (
     <div className="min-h-screen flex bg-secondary">
       <aside className="w-56 bg-card border-r border-border flex flex-col shrink-0">
@@ -43,11 +30,6 @@ const AdminLayout = () => {
             <ExternalLink className="h-4 w-4" /> Xem website
           </a>
         </nav>
-        <div className="p-3 border-t border-border">
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleLogout}>
-            <LogOut className="h-4 w-4" /> Đăng xuất
-          </Button>
-        </div>
       </aside>
       <main className="flex-1 p-8 overflow-auto">
         <Outlet />
