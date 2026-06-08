@@ -10,12 +10,14 @@ import {
   updatePost,
 } from "./posts-db";
 import { createPresignedUpload } from "./r2";
+import { getApiPathname } from "./path";
 
 type ApiRequest = IncomingMessage & {
   url?: string;
   method?: string;
   headers: IncomingMessage["headers"];
   body?: unknown;
+  query?: Record<string, string | string[] | undefined>;
 };
 
 type ApiResponse = ServerResponse;
@@ -74,8 +76,7 @@ const matchPath = (pathname: string, pattern: string) => {
 };
 
 export const handleApiRequest = async (req: ApiRequest, res: ApiResponse) => {
-  const url = new URL(req.url ?? "/", "http://localhost");
-  const pathname = url.pathname.replace(/\/+$/, "") || "/";
+  const pathname = getApiPathname(req);
   const method = req.method ?? "GET";
 
   try {

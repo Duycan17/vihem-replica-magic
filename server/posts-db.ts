@@ -1,5 +1,5 @@
-import { neon } from "@neondatabase/serverless";
 import type { Post, PostInsert, PostUpdate } from "../shared/posts";
+import { getSql } from "./db";
 
 export type { PostInsert, PostUpdate };
 
@@ -25,12 +25,6 @@ type DbPost = {
   status: string;
   created_at: string;
   updated_at: string;
-};
-
-export const getSql = () => {
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL is not configured.");
-  return neon(url);
 };
 
 const formatDisplayDate = (value: string | null): string | null => {
