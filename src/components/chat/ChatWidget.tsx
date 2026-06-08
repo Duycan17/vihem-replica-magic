@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
-import { Bot, MessageCircle, Send, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bot, Menu, MessageCircle, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { SUGGESTED_QUESTIONS } from "@/components/chat/chatdata";
 import { useChatUI } from "@/hooks/useChatUI";
 import type { ChatMessage } from "@/types/chat";
 
@@ -23,7 +23,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
       <div className={cn("flex max-w-[80%] flex-col gap-1", isUser && "items-end")}>
         <div
           className={cn(
-            "rounded-lg px-3 py-2 text-sm leading-relaxed",
+            "whitespace-pre-line rounded-lg px-3 py-2 text-sm leading-relaxed",
             isUser ? "bg-brand text-brand-foreground" : "bg-muted text-foreground",
           )}
         >
@@ -50,13 +50,53 @@ const TypingIndicator = () => (
   </div>
 );
 
+const SuggestedQuestions = ({
+  disabled,
+  onSelect,
+  onClose,
+}: {
+  disabled: boolean;
+  onSelect: (q: string) => void;
+  onClose: () => void;
+}) => (
+  <div className="flex flex-col gap-2">
+    <div className="flex items-center justify-between">
+      <p className="text-[11px] text-muted-foreground">Gợi ý câu hỏi</p>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Đóng gợi ý"
+        className="text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+    <div className="flex flex-wrap gap-2">
+      {SUGGESTED_QUESTIONS.map((q) => (
+        <button
+          key={q}
+          type="button"
+          disabled={disabled}
+          onClick={() => onSelect(q)}
+          className="rounded-full border bg-background px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+        >
+          {q}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
 const ChatWidget = () => {
-  const { isOpen, toggle, close, messages, input, setInput, isTyping, send } = useChatUI();
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const { isOpen, toggle, close, messages, input, setInput, isTyping, send, sendText } = useChatUI();
+  const [suggestionsOpen, setSuggestionsOpen] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping]);
 
   useEffect(() => {
@@ -71,10 +111,21 @@ const ChatWidget = () => {
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, close]);
 
+  const handleSend = () => {
+    if (!input.trim() || isTyping) return;
+    setSuggestionsOpen(false);
+    send();
+  };
+
+  const handleSendText = (q: string) => {
+    setSuggestionsOpen(false);
+    sendText(q);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      send();
+      handleSend();
     }
   };
 
@@ -110,18 +161,42 @@ const ChatWidget = () => {
             </Button>
           </header>
 
-          <ScrollArea className="flex-1 px-4 py-3" style={{ height: "min(360px, calc(100dvh - 14rem))" }}>
+          <div
+            ref={scrollRef}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3"
+            style={{ height: "min(360px, calc(100dvh - 14rem))" }}
+          >
             <div className="flex flex-col gap-4">
               {messages.map((m) => (
                 <MessageBubble key={m.id} message={m} />
               ))}
               {isTyping && <TypingIndicator />}
-              <div ref={bottomRef} />
             </div>
-          </ScrollArea>
+          </div>
 
-          <footer className="border-t p-3">
-            <div className="flex items-end gap-2">
+          <footer className="border-t">
+            {suggestionsOpen && (
+              <div className="border-b px-3 py-2">
+                <SuggestedQuestions
+                  disabled={isTyping}
+                  onSelect={handleSendText}
+                  onClose={() => setSuggestionsOpen(false)}
+                />
+              </div>
+            )}
+            <div className="flex items-end gap-2 p-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setSuggestionsOpen((v) => !v)}
+                disabled={isTyping}
+                aria-label={suggestionsOpen ? "Ẩn gợi ý câu hỏi" : "Hiện gợi ý câu hỏi"}
+                aria-expanded={suggestionsOpen}
+                className="h-10 w-10 shrink-0"
+              >
+                <Menu />
+              </Button>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -135,7 +210,7 @@ const ChatWidget = () => {
               />
               <Button
                 size="icon"
-                onClick={send}
+                onClick={handleSend}
                 disabled={!input.trim() || isTyping}
                 aria-label="Gửi tin nhắn"
                 className="h-10 w-10 shrink-0 bg-brand text-brand-foreground hover:bg-brand-dark"

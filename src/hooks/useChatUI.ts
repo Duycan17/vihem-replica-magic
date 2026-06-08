@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { mockChatEngine } from "@/components/chat/chatdata";
 import type { ChatEngine, ChatMessage } from "@/types/chat";
 
 const WELCOME: ChatMessage = {
@@ -14,7 +15,7 @@ interface UseChatUIOptions {
   engine?: ChatEngine;
 }
 
-export const useChatUI = ({ engine }: UseChatUIOptions = {}) => {
+export const useChatUI = ({ engine = mockChatEngine }: UseChatUIOptions = {}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
@@ -23,24 +24,27 @@ export const useChatUI = ({ engine }: UseChatUIOptions = {}) => {
   const toggle = useCallback(() => setIsOpen((v) => !v), []);
   const close = useCallback(() => setIsOpen(false), []);
 
-  const send = useCallback(async () => {
-    const text = input.trim();
-    if (!text || isTyping) return;
+  const sendText = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || isTyping) return;
 
-    const userMsg: ChatMessage = { id: uid(), role: "user", content: text, createdAt: new Date() };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setIsTyping(true);
+      const userMsg: ChatMessage = { id: uid(), role: "user", content: trimmed, createdAt: new Date() };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setIsTyping(true);
 
-    try {
-      const reply = engine
-        ? await engine.sendMessage(text, [...messages, userMsg])
-        : "Cảm ơn bạn đã liên hệ. Tính năng trả lời tự động đang được phát triển — đội ngũ Vihem sẽ hỗ trợ bạn sớm nhất.";
-      setMessages((prev) => [...prev, { id: uid(), role: "assistant", content: reply, createdAt: new Date() }]);
-    } finally {
-      setIsTyping(false);
-    }
-  }, [engine, input, isTyping, messages]);
+      try {
+        const reply = await engine.sendMessage(trimmed, [...messages, userMsg]);
+        setMessages((prev) => [...prev, { id: uid(), role: "assistant", content: reply, createdAt: new Date() }]);
+      } finally {
+        setIsTyping(false);
+      }
+    },
+    [engine, isTyping, messages],
+  );
+
+  const send = useCallback(() => sendText(input), [input, sendText]);
 
   const reset = useCallback(() => {
     setMessages([WELCOME]);
@@ -48,5 +52,5 @@ export const useChatUI = ({ engine }: UseChatUIOptions = {}) => {
     setIsTyping(false);
   }, []);
 
-  return { isOpen, toggle, close, messages, input, setInput, isTyping, send, reset };
+  return { isOpen, toggle, close, messages, input, setInput, isTyping, send, sendText, reset };
 };
