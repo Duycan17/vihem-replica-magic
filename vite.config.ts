@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
-import { apiPlugin } from "./server/api-plugin";
+import { apiPlugin } from "./api/lib/api-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {

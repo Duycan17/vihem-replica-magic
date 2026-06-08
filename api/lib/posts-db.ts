@@ -1,4 +1,4 @@
-import type { Post, PostInsert, PostUpdate } from "../shared/posts";
+import type { Post, PostInsert, PostUpdate } from "./posts";
 import { getSql } from "./db";
 
 export type { PostInsert, PostUpdate };

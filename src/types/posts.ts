@@ -1,1 +1,1 @@
-export type { Post, PostInsert, PostUpdate } from "../../shared/posts";
+export type { Post, PostInsert, PostUpdate } from "../../api/lib/posts";
