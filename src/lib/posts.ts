@@ -5,8 +5,23 @@ export type { Post, PostInsert, PostUpdate };
 const apiFetch = async (path: string, init?: RequestInit) => {
   const res = await fetch(path, { ...init, credentials: "include" });
   if (res.status === 204) return null;
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error ?? data.message ?? "Request failed");
+
+  const text = await res.text();
+  if (!text) {
+    throw new Error(res.ok ? "Empty response from server" : `Request failed (${res.status})`);
+  }
+
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Invalid response from server (${res.status})`);
+  }
+
+  if (!res.ok) {
+    const err = data as { error?: string; message?: string };
+    throw new Error(err.error ?? err.message ?? "Request failed");
+  }
   return data;
 };
 

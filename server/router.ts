@@ -18,11 +18,26 @@ import {
 } from "./posts-db";
 import { createPresignedUpload } from "./r2";
 
-type ApiRequest = IncomingMessage & { url?: string; method?: string; headers: IncomingMessage["headers"] };
+type ApiRequest = IncomingMessage & {
+  url?: string;
+  method?: string;
+  headers: IncomingMessage["headers"];
+  body?: unknown;
+};
+
 type ApiResponse = ServerResponse;
 
-const readJsonBody = (req: ApiRequest): Promise<unknown> =>
-  new Promise((resolve, reject) => {
+const readJsonBody = (req: ApiRequest): Promise<unknown> => {
+  if (req.body !== undefined && req.body !== null) {
+    if (typeof req.body === "string") {
+      return Promise.resolve(req.body ? JSON.parse(req.body) : {});
+    }
+    if (typeof req.body === "object") {
+      return Promise.resolve(req.body);
+    }
+  }
+
+  return new Promise((resolve, reject) => {
     let body = "";
     req.on("data", (chunk) => {
       body += chunk;
@@ -36,6 +51,7 @@ const readJsonBody = (req: ApiRequest): Promise<unknown> =>
     });
     req.on("error", reject);
   });
+};
 
 const sendJson = (res: ApiResponse, status: number, data: unknown, headers?: Record<string, string>) => {
   res.statusCode = status;
